@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pack.schema.json",
+  "title": "Flashcards pack v1",
+  "type": "object",
+  "required": ["version", "id", "title", "cards"],
+  "properties": {
+    "version": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Stable pack id; progress is keyed on it." },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "cards": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "q", "a"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "description": "Unique within the pack; never reuse or renumber." },
+          "q": { "type": "string", "minLength": 1 },
+          "a": { "type": "string", "minLength": 1 },
+          "choices": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "Optional authored distractors (wrong answers only); `a` is added automatically." },
+          "accept": { "type": "array", "items": { "type": "string" }, "description": "Optional alternate answers accepted in typed mode." },
+          "tags": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

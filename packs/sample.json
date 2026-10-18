@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "id": "math-7-sample",
+  "title": "7th Grade Math Sample",
+  "description": "20-card sample pack covering vocabulary and quick practice.",
+  "cards": [
+    {
+      "id": "v01",
+      "q": "Define: polygon",
+      "a": "A closed 2D shape made of straight line segments",
+      "tags": [
+        "vocab"
+      ],
+      "accept": [
+        "a closed shape with straight sides"
+      ]
+    },
+    {
+      "id": "v02",
+      "q": "Define: coefficient",
+      "a": "The number multiplied by a variable in a term",
+      "tags": [
+        "vocab"
+      ]
+    },
+    {
+      "id": "v03",
+      "q": "Define: constant",
+      "a": "A term whose value does not change",
+      "tags": [
+        "vocab"
+      ],
+      "choices": [
+        "A letter standing for an unknown",
+        "The number multiplied by a variable",
+        "A repeated operation"
+      ]
+    },
+    {
+      "id": "v04",
+      "q": "Define: proportion",
+      "a": "An equation stating that two ratios are equal",
+      "tags": [
+        "vocab"
+      ]
+    },
+    {
+      "id": "v05",
+      "q": "Define: integer",
+      "a": "A whole number, its opposite, or zero",
+      "tags": [
+        "vocab"
+      ],
+      "choices": [
+        "A number with a decimal part",
+        "A fraction less than one",
+        "Any positive number"
+      ]
+    },
+    {
+      "id": "v06",
+      "q": "Define: inequality",
+      "a": "A statement comparing two expressions with <, >, ≤ or ≥",
+      "tags": [
+        "vocab"
+      ]
+    },
+    {
+      "id": "v07",
+      "q": "Define: unit rate",
+      "a": "A rate with a denominator of 1",
+      "tags": [
+        "vocab"
+      ]
+    },
+    {
+      "id": "v08",
+      "q": "Define: absolute value",
+      "a": "A number's distance from zero on the number line",
+      "tags": [
+        "vocab"
+      ],
+      "choices": [
+        "A number's opposite",
+        "A number squared",
+        "The sum of two numbers"
+      ]
+    },
+    {
+      "id": "v09",
+      "q": "Define: variable",
+      "a": "A letter that stands for an unknown number",
+      "tags": [
+        "vocab"
+      ]
+    },
+    {
+      "id": "v10",
+      "q": "Define: expression",
+      "a": "A math phrase with numbers, variables and operations but no equals sign",
+      "tags": [
+        "vocab"
+      ]
+    },
+    {
+      "id": "p01",
+      "q": "Compute: 12 + (−5)",
+      "a": "7",
+      "tags": [
+        "practice"
+      ]
+    },
+    {
+      "id": "p02",
+      "q": "Compute: −3 × (−4)",
+      "a": "12",
+      "tags": [
+        "practice"
+      ]
+    },
+    {
+      "id": "p03",
+      "q": "What is 25% of 80?",
+      "a": "20",
+      "tags": [
+        "practice"
+      ]
+    },
+    {
+      "id": "p04",
+      "q": "Solve: x + 9 = 15",
+      "a": "6",
+      "tags": [
+        "practice"
+      ]
+    },
+    {
+      "id": "p05",
+      "q": "Solve: 3x = 21",
+      "a": "7",
+      "tags": [
+        "practice"
+      ]
+    },
+    {
+      "id": "p06",
+      "q": "Simplify: 4(x + 2)",
+      "a": "4x + 8",
+      "tags": [
+        "practice"
+      ],
+      "choices": [
+        "12",
+        "8",
+        "3"
+      ]
+    },
+    {
+      "id": "p07",
+      "q": "Compute: 6 ÷ 1/2",
+      "a": "12",
+      "tags": [
+        "practice"
+      ],
+      "accept": [
+        "4x+8"
+      ]
+    },
+    {
+      "id": "p08",
+      "q": "Compute: |−9|",
+      "a": "9",
+      "tags": [
+        "practice"
+      ]
+    },
+    {
+      "id": "p09",
+      "q": "Area of a triangle with base 10 and height 6",
+      "a": "30",
+      "tags": [
+        "practice"
+      ]
+    },
+    {
+      "id": "p10",
+      "q": "If 5 pens cost $4, what is the cost of 1 pen?",
+      "a": "$0.80",
+      "tags": [
+        "practice"
+      ],
+      "accept": [
+        "0.80",
+        "$.80",
+        "80 cents"
+      ]
+    }
+  ]
+}

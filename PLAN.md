@@ -16,12 +16,12 @@ A static, no-backend, zero-account single-page app that quizzes you from an uplo
 
 ## Decisions to make first (in order)
 
-1. **Pack format** (everything depends on it). Proposal: single JSON file with a `version` field, so shared packs survive app changes. See draft schema below.
-2. **Stack.** Recommendation: Vite + TypeScript, no UI framework (vanilla or a tiny lib like Preact if state gets unwieldy). Deploys to GitHub Pages as static files. Alternative: plain JS with no build step.
+1. **Pack format** — DECIDED. Single JSON file with a `version` field. Formal schema: `schema/pack.schema.json`; sample: `packs/sample.json`. Card `id`s are author-supplied and required (never renumber); `choices`, `accept`, `tags` optional; `choices` hold distractors only (the answer is added automatically). CSV import (`q,a[,tags]`, optional `id` column) derives ids from a hash of the question when absent.
+2. **Stack** — DECIDED. Vite + TypeScript, no UI framework (Preact only if state gets unwieldy). Static output for GitHub Pages.
 3. **Persistence.** localStorage for settings; IndexedDB if per-card history grows. Key progress by pack `id` + card `id`, never by position.
 4. **Load pack from URL** (`?pack=https://...`)? Link-sharing is nicer than file-sharing but is limited by CORS (raw GitHub URLs work; arbitrary hosts may not). Decide after v1 loop works.
 
-## Draft pack schema (v1)
+## Pack schema (v1)
 
 ```json
 {
@@ -77,4 +77,4 @@ Unit tests for pack validation, fuzzy match, shuffling, and scheduler (pure func
 
 ## Next step
 
-Finalize the schema above, write the 20-card sample at `packs/sample.json`, build M0.
+Build the M0 throwaway quiz page (#6).
