@@ -6,6 +6,8 @@ A static, no-backend flashcards and quiz app. Load a pack of questions and answe
 
 ## Try it
 
+Live at **https://joshua-hull.is-a.dev/flashcards/**, or run it locally:
+
 ```sh
 npm install
 npm run dev      # local dev server
@@ -34,4 +36,4 @@ A pack is a single JSON file with a `version` field, so shared packs keep workin
 
 ## Planned
 
-Spaced repetition; deployment to GitHub Pages with offline support.
+Spaced repetition and offline support.
