@@ -2,7 +2,7 @@
 
 A static, no-backend flashcards and quiz app. Load a pack of questions and answers from a file, get quizzed in random order, and keep your progress in your own browser. No accounts, no server.
 
-**Status:** M2 (pack designer) done. See [PLAN.md](PLAN.md) for goals and milestones, and the [issue tracker](../../issues) for current work.
+**Status:** M3 (spaced repetition) done. See [PLAN.md](PLAN.md) for goals and milestones, and the [issue tracker](../../issues) for current work.
 
 ## Try it
 
@@ -21,6 +21,8 @@ Open the app, drop in a pack (or use the built-in sample), pick a mode and start
 - **Keyboard:** `space`/`enter` reveal or continue, `1`/`2` grade (or pick an option), `enter` submits a typed answer.
 - **Progress:** stored per pack in your browser's localStorage, with a per-pack reset. Packs you load are remembered too.
 - **Pack designer:** create or edit a pack in the page (cards, wrong choices, alternate answers, tags), with live validation and a preview, then download it as `.json` or save it to your packs. Import a JSON/CSV file to edit; your draft autosaves in the browser.
+- **Spaced repetition:** SM-2 schedules each card from how you answer. Each pack shows what's due today (plus up to 20 new cards), and "Study" defaults to it; "All cards" and "Last missed" are always available.
+- **Backup:** export all your packs and progress to one file, and import it on another browser. Importing merges, keeping the newest answer per card.
 - **After a round:** a summary with the cards you missed and a one-click retry. You can also drill only the cards you last missed.
 
 ## Packs
@@ -36,4 +38,4 @@ A pack is a single JSON file with a `version` field, so shared packs keep workin
 
 ## Planned
 
-Spaced repetition and offline support.
+Offline support and optional `?pack=` URL loading.

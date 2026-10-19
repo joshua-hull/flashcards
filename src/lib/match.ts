@@ -1,12 +1,18 @@
 import type { Card } from "./types";
 
-/** Lowercase, strip accents and punctuation, collapse whitespace. */
+/**
+ * Canonical form for comparing answers: lowercase, no accents, dash variants (hyphen, en/em dash, U+2212
+ * minus) unified, punctuation dropped except math symbols, and no spaces around those symbols
+ * (so `4x + 8` equals `4x+8` and `−3` equals `-3`).
+ */
 export function normalize(s: string): string {
   return s
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s.\-+/^%=]/gu, "")
+    .replace(/[\u2010-\u2015\u2212]/g, "-")
+    .replace(/[^\p{L}\p{N}\s.\-+/^%=×÷*<>≤≥()]/gu, "")
+    .replace(/\s*([-+/^%=×÷*<>≤≥()])\s*/g, "$1")
     .replace(/\s+/g, " ")
     .trim();
 }

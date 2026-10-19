@@ -8,10 +8,12 @@ import {
   currentCard, isDone, record, startSession, summarize, type Mode, type Session,
 } from "./lib/session";
 import {
-  forgetPack, listPackIds, loadPack, loadProgress, mastery, recordSession, resetProgress, savePack, weakCardIds,
+  forgetPack, listPackIds, loadPack, loadProgress, mastery, recordSession, resetProgress, savePack, schedulesOf, weakCardIds,
 } from "./lib/storage";
 import type { Card, Pack } from "./lib/types";
-import { h, keys, kbd, store, view, type Child } from "./dom";
+import { downloadText, h, keys, kbd, store, view, type Child } from "./dom";
+import { backupFilename, buildBackup, mergeBackup, parseBackup } from "./lib/backup";
+import { dayNumber, describeDay, dueSummary, qualityFor, selectDue } from "./lib/scheduler";
 import { openDesigner } from "./designer";
 import { draftFromPack, isBlankDraft, loadDraft, type Draft } from "./lib/designer";
 
@@ -40,6 +42,35 @@ function design(pack?: Pack) {
 // ---------- home ----------
 
 let loadErrors: string[] = [];
+let backupMessage: { ok: boolean; lines: string[] } | null = null;
+
+/** Cards due for review today (excluding brand-new ones), for the pack list. */
+function dueNow(p: Pack): number {
+  const today = dayNumber(new Date());
+  return dueSummary(p.cards, schedulesOf(loadProgress(store, p.id), today), today).dueCount;
+}
+
+function exportBackup() {
+  const backup = buildBackup(store);
+  downloadText(backupFilename(), JSON.stringify(backup, null, 2) + "\n");
+  backupMessage = { ok: true, lines: [`Exported ${backup.packs.length} pack${backup.packs.length === 1 ? "" : "s"} with their progress.`] };
+  home();
+}
+
+async function importBackup(file: File | undefined) {
+  if (!file) return;
+  const parsed = parseBackup(await file.text());
+  if (!parsed.ok) backupMessage = { ok: false, lines: [`Couldn't import ${file.name}:`, ...parsed.errors] };
+  else {
+    const r = mergeBackup(store, parsed.backup);
+    backupMessage = { ok: true, lines: [
+      `Imported ${file.name}: ${r.packsAdded} new pack${r.packsAdded === 1 ? "" : "s"}${r.packsKept ? ` (${r.packsKept} already here, kept as they are)` : ""}.`,
+      `Progress: ${r.cardsImported} card${r.cardsImported === 1 ? "" : "s"} updated${r.cardsKept ? `, ${r.cardsKept} kept (yours was as recent or newer)` : ""}.`,
+    ] };
+  }
+  home();
+}
+
 
 function openPack(result: ParseResult, source: string) {
   if (!result.ok) {
@@ -58,6 +89,21 @@ async function loadFile(file: File | undefined) {
   openPack(isCsv ? csvToPack(text, file.name) : parsePackJson(text), file.name);
 }
 
+function backupPanel(): HTMLElement {
+  const input = h("input", { type: "file", accept: ".json,application/json", hidden: true, onchange: () => void importBackup(input.files?.[0]) });
+  const hasPacks = listPackIds(store).length > 0;
+  const msg = backupMessage;
+  backupMessage = null;
+  return h("section", { class: "panel stack" },
+    h("h2", {}, "Backup"),
+    h("p", { class: "muted" }, "Your packs and progress live only in this browser. Export a backup file to keep them safe or move them to another device; importing merges, keeping the newest answer for each card."),
+    h("div", { class: "row" },
+      h("button", { disabled: !hasPacks, onclick: exportBackup }, "Export backup"),
+      h("label", { class: "btn" }, "Import backup…", input)),
+    msg && h("div", { class: msg.ok ? "verdict good" : "errors-box", role: msg.ok ? "status" : "alert" },
+      ...msg.lines.map((l, i) => h("div", { class: i === 0 && !msg.ok ? "verdict bad" : "" }, l))));
+}
+
 function home() {
   const input = h("input", { type: "file", accept: ".json,.csv,application/json,text/csv", hidden: true, onchange: () => void loadFile(input.files?.[0]) });
   const drop = h("label", { class: "panel drop" },
@@ -71,7 +117,7 @@ function home() {
     const m = mastery(loadProgress(store, p.id), p);
     return h("div", { class: "pack-item" },
       h("div", { class: "grow" }, h("div", { class: "name" }, p.title),
-        h("div", { class: "muted" }, `${p.cards.length} cards · ${m.mastered} mastered`)),
+        h("div", { class: "muted" }, `${p.cards.length} cards · ${m.mastered} mastered${dueNow(p) ? ` · ${dueNow(p)} due` : ""}`)),
       h("button", { onclick: () => packView(p) }, "Open"),
       h("button", { class: "link", onclick: () => design(p) }, "Edit"),
       h("button", { class: "link danger", onclick: () => { if (confirm(`Remove "${p.title}" and its progress from this browser?`)) { forgetPack(store, p.id); home(); } } }, "Remove"));
@@ -84,6 +130,7 @@ function home() {
     loadErrors.length && h("div", { class: "panel errors", role: "alert" },
       h("div", {}, loadErrors[0]!), h("ul", {}, ...loadErrors.slice(1).map((e) => h("li", {}, e)))),
     list,
+    backupPanel(),
     h("p", { class: "muted" }, "No pack handy? ",
       h("button", { class: "link", onclick: () => openPack(parsePackJson(sampleText), "sample") }, "Try the sample pack"),
       " or ",
@@ -100,17 +147,36 @@ const MODES: { mode: Mode; name: string; blurb: string }[] = [
 ];
 let lastMode: Mode = "flip";
 
+type Source = "due" | "all" | "weak";
+
 function packView(pack: Pack) {
   const progress = loadProgress(store, pack.id);
   const m = mastery(progress, pack);
   const weak = weakCardIds(progress, pack);
+  const today = dayNumber(new Date());
+  const schedules = schedulesOf(progress, today);
+  const due = dueSummary(pack.cards, schedules, today);
+  const dueCards = selectDue(pack.cards, schedules, today);
   let mode = lastMode;
+  let source: Source = dueCards.length ? "due" : "all";
 
   const radios = MODES.map((o) => {
     const r = h("input", { type: "radio", name: "mode", value: o.mode, checked: o.mode === mode, onchange: () => { mode = o.mode; lastMode = mode; } });
     return h("label", {}, r, h("span", {}, h("strong", {}, o.name), h("div", { class: "muted" }, o.blurb)));
   });
-  const onlyWeak = h("input", { type: "checkbox", id: "weak" });
+
+  const newInSession = dueCards.length - due.dueCount;
+  const sources: { value: Source; name: string; blurb: string; show: boolean }[] = [
+    { value: "due", show: dueCards.length > 0, name: `Due today (${dueCards.length})`,
+      blurb: `${due.dueCount} due for review${newInSession ? `, ${newInSession} new` : ""}. Spaced repetition schedules the next review from how you answer.` },
+    { value: "all", show: true, name: `All cards (${pack.cards.length})`, blurb: "Practice everything. Cards that aren't due yet keep their schedule if you answer them correctly." },
+    { value: "weak", show: weak.length > 0, name: `Last missed (${weak.length})`, blurb: "Only the cards you got wrong most recently." },
+  ];
+  const sourceRadios = sources.filter((o) => o.show).map((o) =>
+    h("label", {}, h("input", { type: "radio", name: "source", value: o.value, checked: o.value === source, onchange: () => { source = o.value; } }),
+      h("span", {}, h("strong", {}, o.name), h("div", { class: "muted" }, o.blurb))));
+
+  const nothingDue = !dueCards.length && due.nextDue !== undefined ? `Nothing due today. Next review ${describeDay(due.nextDue, today)}.` : null;
 
   view(
     h("header", { class: "stack" },
@@ -119,11 +185,12 @@ function packView(pack: Pack) {
         h("button", { class: "link", onclick: () => design(pack) }, "Edit pack")),
       h("h1", {}, pack.title),
       pack.description && h("p", { class: "muted" }, pack.description),
-      h("p", { class: "muted" }, `${pack.cards.length} cards · ${m.studied} studied · ${m.mastered} mastered · ${progress.sessions} sessions`)),
+      h("p", { class: "muted" }, `${pack.cards.length} cards · ${m.studied} studied · ${m.mastered} mastered · ${progress.sessions} sessions`),
+      nothingDue && h("p", { class: "verdict good" }, nothingDue)),
+    h("section", { class: "panel modes" }, h("h2", {}, "Study"), ...sourceRadios),
     h("section", { class: "panel modes" }, h("h2", {}, "Mode"), ...radios),
-    weak.length ? h("label", { class: "row", for: "weak" }, h("span", {}, onlyWeak, ` Only the ${weak.length} card${weak.length === 1 ? "" : "s"} I last missed`)) : null,
     h("button", { class: "primary", onclick: () => {
-      const cards = onlyWeak.checked ? pack.cards.filter((c) => weak.includes(c.id)) : pack.cards;
+      const cards = source === "due" ? dueCards : source === "weak" ? pack.cards.filter((c) => weak.includes(c.id)) : pack.cards;
       quiz(pack, startSession(cards, mode));
     } }, "Start"),
     h("button", { class: "link danger", disabled: !progress.sessions, onclick: () => { if (confirm("Reset progress for this pack?")) { resetProgress(store, pack.id); packView(pack); } } }, "Reset progress"),
@@ -142,7 +209,7 @@ function quiz(pack: Pack, session: Session) {
   const top = h("div", { class: "spread" },
     h("span", { class: "muted" }, `Question ${session.index + 1} / ${session.deck.length}`),
     h("button", { class: "link", onclick: () => { if (confirm("Quit this session? Progress for it won't be saved.")) packView(pack); } }, "Quit"));
-  const next = (correct: boolean) => quiz(pack, record(session, correct));
+  const next = (correct: boolean, verdict?: Verdict) => quiz(pack, record(session, correct, qualityFor(mode, correct, verdict)));
   const front = (extra: Child = null) => h("div", { class: `card${mode === "flip" ? " flip" : ""}`, tabindex: mode === "flip" ? 0 : null }, card.q, extra);
 
   if (mode === "flip") flipView(top, bar, card, next);
@@ -195,7 +262,7 @@ function choiceView(top: Node, bar: Node, card: Card, options: string[], next: (
   };
 }
 
-function typedView(top: Node, bar: Node, card: Card, front: () => HTMLElement, next: (ok: boolean) => void) {
+function typedView(top: Node, bar: Node, card: Card, front: () => HTMLElement, next: (ok: boolean, verdict?: Verdict) => void) {
   let verdict: Verdict | null = null;
   const input = h("input", { type: "text", autocomplete: "off", autocapitalize: "off", spellcheck: false, "aria-label": "Your answer", placeholder: "Type your answer" });
   const feedback = h("div", { class: "stack", hidden: true });
@@ -207,14 +274,13 @@ function typedView(top: Node, bar: Node, card: Card, front: () => HTMLElement, n
     input.disabled = true;
     const good = verdict !== "wrong";
     const label = verdict === "exact" ? "Correct" : verdict === "close" ? "Close enough — counted as correct" : "Not quite";
-    const go = (ok: boolean) => () => next(ok);
     feedback.hidden = false;
     feedback.replaceChildren(
       h("div", { class: `verdict ${good ? "good" : "bad"}` }, label),
       h("div", { class: "panel" }, h("div", { class: "muted" }, "Answer"), card.a),
       h("div", { class: "row" },
-        !good && h("button", { onclick: go(true) }, "I was right"),
-        h("button", { class: "primary", onclick: go(good) }, "Next ", kbd("enter"))));
+        !good && h("button", { onclick: () => next(true, "close") }, "I was right"), // self-override counts as weak recall
+        h("button", { class: "primary", onclick: () => next(good, verdict as Verdict) }, "Next ", kbd("enter"))));
     submit.hidden = true;
     (feedback.querySelector("button.primary") as HTMLElement).focus();
   }
@@ -225,7 +291,7 @@ function typedView(top: Node, bar: Node, card: Card, front: () => HTMLElement, n
     if (e.key !== "Enter") return;
     e.preventDefault();
     if (!verdict) check();
-    else next(verdict !== "wrong");
+    else next(verdict !== "wrong", verdict);
   };
 }
 

@@ -1,4 +1,4 @@
-import { fill, h, store, view } from "./dom";
+import { downloadText, fill, h, store, view } from "./dom";
 import { buildChoices } from "./lib/choices";
 import { csvToPack } from "./lib/csv";
 import {
@@ -100,14 +100,7 @@ export function openDesigner(opts: DesignerOptions) {
 
   // ---------- actions ----------
 
-  function download(pack: Pack) {
-    const url = URL.createObjectURL(new Blob([toJson(pack)], { type: "application/json" }));
-    const a = h("a", { href: url, download: downloadName(pack) });
-    document.body.append(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
+  const download = (pack: Pack) => downloadText(downloadName(pack), toJson(pack));
 
   function save(pack: Pack, thenStudy: boolean) {
     if (!savePack(store, pack)) {
