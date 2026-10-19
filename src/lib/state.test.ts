@@ -58,7 +58,8 @@ describe("storage", () => {
     recordSession(store, "p", [{ cardId: "a", correct: false }, { cardId: "b", correct: true }], 100);
     const p = recordSession(store, "p", [{ cardId: "a", correct: true }], 200);
     expect(p.sessions).toBe(2);
-    expect(p.cards.a).toEqual({ seen: 2, correct: 1, last: true, at: 200 });
+    expect(p.cards.a).toMatchObject({ seen: 2, correct: 1, last: true, at: 200 });
+    expect(p.cards.a!.sched).toBeDefined();
     expect(loadProgress(store, "p")).toEqual(p);
   });
 

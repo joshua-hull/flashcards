@@ -1,4 +1,5 @@
 import type { Pack } from "./types";
+import { applyAnswer, dayNumber, newSchedule, type Quality, type Schedule } from "./scheduler";
 
 /** The subset of the Web Storage API we use, so tests can pass an in-memory fake. */
 export interface KeyValueStore {
@@ -12,6 +13,7 @@ export interface CardProgress {
   correct: number;
   last: boolean;
   at: number;
+  sched?: Schedule; // absent on progress recorded before spaced repetition existed
 }
 
 export interface PackProgress {
@@ -52,20 +54,41 @@ export const loadProgress = (store: KeyValueStore, packId: string): PackProgress
 export function recordSession(
   store: KeyValueStore,
   packId: string,
-  answers: readonly { cardId: string; correct: boolean }[],
+  answers: readonly { cardId: string; correct: boolean; quality?: Quality }[],
   now = Date.now(),
 ): PackProgress {
   const progress = loadProgress(store, packId);
+  const today = dayNumber(new Date(now));
   progress.sessions += 1;
-  for (const { cardId, correct } of answers) {
+  for (const { cardId, correct, quality } of answers) {
     const prev = progress.cards[cardId] ?? { seen: 0, correct: 0, last: false, at: 0 };
-    progress.cards[cardId] = { seen: prev.seen + 1, correct: prev.correct + (correct ? 1 : 0), last: correct, at: now };
+    const known = prev.sched ?? (prev.seen > 0 ? newSchedule(today) : undefined); // legacy progress counts as due
+    progress.cards[cardId] = {
+      seen: prev.seen + 1,
+      correct: prev.correct + (correct ? 1 : 0),
+      last: correct,
+      at: now,
+      sched: applyAnswer(known, quality ?? (correct ? 4 : 1), today),
+    };
   }
-  writeJson(store, progressKey(packId), progress);
+  saveProgress(store, packId, progress);
   return progress;
 }
 
+/** Overwrite a pack's stored progress. Returns false if the browser refused the write. */
+export const saveProgress = (store: KeyValueStore, packId: string, progress: PackProgress): boolean =>
+  writeJson(store, progressKey(packId), progress);
+
 export const resetProgress = (store: KeyValueStore, packId: string): void => store.removeItem(progressKey(packId));
+
+/** Schedules by card id for the scheduler. Cards studied before spaced repetition existed count as due today. */
+export function schedulesOf(progress: PackProgress, today: number): Record<string, Schedule> {
+  return Object.fromEntries(
+    Object.entries(progress.cards)
+      .filter(([, p]) => p.sched || p.seen > 0)
+      .map(([id, p]) => [id, p.sched ?? newSchedule(today)]),
+  );
+}
 
 /** Cards whose most recent answer was wrong. Ids not in the pack are ignored. */
 export function weakCardIds(progress: PackProgress, pack: Pack): string[] {
