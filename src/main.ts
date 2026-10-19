@@ -9,47 +9,9 @@ import {
 } from "./lib/session";
 import {
   forgetPack, listPackIds, loadPack, loadProgress, mastery, recordSession, resetProgress, savePack, weakCardIds,
-  type KeyValueStore,
 } from "./lib/storage";
 import type { Card, Pack } from "./lib/types";
-
-const app = document.getElementById("app")!;
-
-/** localStorage can throw or be absent (private mode, blocked site data); fall back to memory. */
-const store: KeyValueStore = (() => {
-  try {
-    localStorage.setItem("flashcards:probe", "1");
-    localStorage.removeItem("flashcards:probe");
-    return localStorage;
-  } catch {
-    const m = new Map<string, string>();
-    return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => void m.set(k, v), removeItem: (k) => void m.delete(k) };
-  }
-})();
-
-type Child = Node | string | null | undefined | false | 0 | "";
-function h<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  props: Partial<Record<string, unknown>> = {},
-  ...kids: Child[]
-): HTMLElementTagNameMap[K] {
-  const el = document.createElement(tag);
-  for (const [k, v] of Object.entries(props)) {
-    if (k === "class") el.className = String(v);
-    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v as EventListener);
-    else if (v === true) el.setAttribute(k, "");
-    else if (v !== false && v != null) el.setAttribute(k, String(v));
-  }
-  for (const kid of kids) if (kid) el.append(kid);
-  return el;
-}
-const kbd = (s: string) => h("kbd", {}, s);
-
-let onKey: ((e: KeyboardEvent) => void) | null = null;
-function view(...nodes: Child[]) {
-  onKey = null;
-  app.replaceChildren(...nodes.filter((n): n is Node | string => !!n));
-}
+import { h, keys, kbd, store, view, type Child } from "./dom";
 
 // ---------- home ----------
 
@@ -174,7 +136,7 @@ function flipView(top: Node, bar: Node, card: Card, next: (ok: boolean) => void)
   actions.append(h("button", { class: "primary", onclick: reveal }, "Show answer ", kbd("space")));
   face.addEventListener("click", reveal);
   view(top, bar, face, actions);
-  onKey = (e) => {
+  keys.onKey = (e) => {
     if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (!shown) reveal(); }
     else if (shown && (e.key === "1" || e.key === "ArrowLeft")) next(false);
     else if (shown && (e.key === "2" || e.key === "ArrowRight")) next(true);
@@ -197,7 +159,7 @@ function choiceView(top: Node, bar: Node, card: Card, options: string[], next: (
     nextBtn.focus();
   }
   view(top, bar, h("div", { class: "card" }, h("div", { class: "side" }, "Question"), card.q), h("div", { class: "options" }, ...buttons), nextBtn);
-  onKey = (e) => {
+  keys.onKey = (e) => {
     const n = Number(e.key);
     if (picked === null && n >= 1 && n <= options.length) pick(n - 1);
     else if (picked !== null && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); next(options[picked] === card.a); }
@@ -230,7 +192,7 @@ function typedView(top: Node, bar: Node, card: Card, front: () => HTMLElement, n
 
   view(top, bar, front(), input, submit, feedback);
   input.focus();
-  onKey = (e) => {
+  keys.onKey = (e) => {
     if (e.key !== "Enter") return;
     e.preventDefault();
     if (!verdict) check();
@@ -257,10 +219,5 @@ function finish(pack: Pack, session: Session) {
       h("button", { onclick: () => packView(pack) }, "Back to pack")),
   );
 }
-
-document.addEventListener("keydown", (e) => {
-  if (e.metaKey || e.ctrlKey || e.altKey) return;
-  onKey?.(e);
-});
 
 home();
