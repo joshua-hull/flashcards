@@ -126,7 +126,12 @@ export function checkDraft(d: Draft): Check {
   return result.ok ? { errors: [], warnings, pack: result.pack } : { errors: result.errors, warnings };
 }
 
-export const toJson = (pack: Pack): string => JSON.stringify(pack, null, 2) + "\n";
+/** True when there's nothing worth keeping: no title or description and every card is empty. */
+export const isBlankDraft = (d: Draft): boolean =>
+  !d.title.trim() && !d.description.trim() &&
+  d.cards.every((c) => !c.q.trim() && !c.a.trim() && !c.choices.trim() && !c.accept.trim() && !c.tags.trim());
+
+export const toJson =(pack: Pack): string => JSON.stringify(pack, null, 2) + "\n";
 
 export const downloadName = (pack: Pick<Pack, "id">): string => `${pack.id || "pack"}.json`;
 

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  blankDraft, checkDraft, clearDraft, downloadName, draftFromPack, draftToPack, loadDraft, moveCard,
+  blankDraft, checkDraft, clearDraft, downloadName, draftFromPack, draftToPack, isBlankDraft, loadDraft, moveCard,
   nextCardId, removeCard, saveDraft, slugifyTitle, toJson,
 } from "./designer";
 import { parsePackJson } from "./pack";
@@ -111,6 +111,17 @@ describe("checkDraft", () => {
     expect(w).toMatch(/"choices" includes the correct answer/);
     expect(w).toMatch(/"accept" repeats the answer/);
     expect(checkDraft(d).pack).toBeDefined(); // warnings don't block export
+  });
+});
+
+describe("isBlankDraft", () => {
+  it("is true for a fresh draft and false once anything is typed", () => {
+    const d = blankDraft();
+    expect(isBlankDraft(d)).toBe(true);
+    d.cards[0]!.tags = "x";
+    expect(isBlankDraft(d)).toBe(false);
+    expect(isBlankDraft({ ...blankDraft(), title: " T " })).toBe(false);
+    expect(isBlankDraft(draftFromPack(sample()))).toBe(false);
   });
 });
 

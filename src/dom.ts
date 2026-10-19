@@ -35,12 +35,16 @@ export function h<K extends keyof HTMLElementTagNameMap>(
 
 export const kbd = (s: string) => h("kbd", {}, s);
 
+/** Replace an element's children, skipping falsy entries like `h` does. */
+export const fill = (el: HTMLElement, ...kids: Child[]): void =>
+  el.replaceChildren(...kids.filter((k): k is Node | string => !!k));
+
 /** The current screen's keyboard handler; `view` clears it so handlers never leak between screens. */
 export const keys: { onKey: ((e: KeyboardEvent) => void) | null } = { onKey: null };
 
 export function view(...nodes: Child[]) {
   keys.onKey = null;
-  app.replaceChildren(...nodes.filter((n): n is Node | string => !!n));
+  fill(app, ...nodes);
 }
 
 document.addEventListener("keydown", (e) => {

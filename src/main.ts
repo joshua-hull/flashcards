@@ -12,6 +12,30 @@ import {
 } from "./lib/storage";
 import type { Card, Pack } from "./lib/types";
 import { h, keys, kbd, store, view, type Child } from "./dom";
+import { openDesigner } from "./designer";
+import { draftFromPack, isBlankDraft, loadDraft, type Draft } from "./lib/designer";
+
+// ---------- pack designer ----------
+
+const hasDraft = (): boolean => {
+  const d = loadDraft(store);
+  return !!d && !isBlankDraft(d);
+};
+
+/** Open the designer on a saved pack, or resume/start a draft when no pack is given. */
+function design(pack?: Pack) {
+  let draft: Draft | undefined;
+  if (pack) {
+    if (hasDraft() && !confirm("You have an unsaved draft. Replace it with this pack?")) return;
+    draft = draftFromPack(pack);
+  } else {
+    draft = loadDraft(store);
+  }
+  const back = pack
+    ? () => { const saved = loadPack(store, pack.id); if (saved) packView(saved); else home(); }
+    : home;
+  openDesigner({ draft, originalId: pack?.id, back, study: packView });
+}
 
 // ---------- home ----------
 
@@ -49,6 +73,7 @@ function home() {
       h("div", { class: "grow" }, h("div", { class: "name" }, p.title),
         h("div", { class: "muted" }, `${p.cards.length} cards · ${m.mastered} mastered`)),
       h("button", { onclick: () => packView(p) }, "Open"),
+      h("button", { class: "link", onclick: () => design(p) }, "Edit"),
       h("button", { class: "link danger", onclick: () => { if (confirm(`Remove "${p.title}" and its progress from this browser?`)) { forgetPack(store, p.id); home(); } } }, "Remove"));
   }));
 
@@ -60,7 +85,9 @@ function home() {
       h("div", {}, loadErrors[0]!), h("ul", {}, ...loadErrors.slice(1).map((e) => h("li", {}, e)))),
     list,
     h("p", { class: "muted" }, "No pack handy? ",
-      h("button", { class: "link", onclick: () => openPack(parsePackJson(sampleText), "sample") }, "Try the sample pack")),
+      h("button", { class: "link", onclick: () => openPack(parsePackJson(sampleText), "sample") }, "Try the sample pack"),
+      " or ",
+      h("button", { class: "link", onclick: () => design() }, hasDraft() ? "continue your draft" : "create your own")),
   );
 }
 
@@ -87,7 +114,9 @@ function packView(pack: Pack) {
 
   view(
     h("header", { class: "stack" },
-      h("button", { class: "link", onclick: home }, "← All packs"),
+      h("div", { class: "spread" },
+        h("button", { class: "link", onclick: home }, "← All packs"),
+        h("button", { class: "link", onclick: () => design(pack) }, "Edit pack")),
       h("h1", {}, pack.title),
       pack.description && h("p", { class: "muted" }, pack.description),
       h("p", { class: "muted" }, `${pack.cards.length} cards · ${m.studied} studied · ${m.mastered} mastered · ${progress.sessions} sessions`)),
