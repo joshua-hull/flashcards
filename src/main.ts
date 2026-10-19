@@ -9,46 +9,32 @@ import {
 } from "./lib/session";
 import {
   forgetPack, listPackIds, loadPack, loadProgress, mastery, recordSession, resetProgress, savePack, weakCardIds,
-  type KeyValueStore,
 } from "./lib/storage";
 import type { Card, Pack } from "./lib/types";
+import { h, keys, kbd, store, view, type Child } from "./dom";
+import { openDesigner } from "./designer";
+import { draftFromPack, isBlankDraft, loadDraft, type Draft } from "./lib/designer";
 
-const app = document.getElementById("app")!;
+// ---------- pack designer ----------
 
-/** localStorage can throw or be absent (private mode, blocked site data); fall back to memory. */
-const store: KeyValueStore = (() => {
-  try {
-    localStorage.setItem("flashcards:probe", "1");
-    localStorage.removeItem("flashcards:probe");
-    return localStorage;
-  } catch {
-    const m = new Map<string, string>();
-    return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => void m.set(k, v), removeItem: (k) => void m.delete(k) };
+const hasDraft = (): boolean => {
+  const d = loadDraft(store);
+  return !!d && !isBlankDraft(d);
+};
+
+/** Open the designer on a saved pack, or resume/start a draft when no pack is given. */
+function design(pack?: Pack) {
+  let draft: Draft | undefined;
+  if (pack) {
+    if (hasDraft() && !confirm("You have an unsaved draft. Replace it with this pack?")) return;
+    draft = draftFromPack(pack);
+  } else {
+    draft = loadDraft(store);
   }
-})();
-
-type Child = Node | string | null | undefined | false | 0 | "";
-function h<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  props: Partial<Record<string, unknown>> = {},
-  ...kids: Child[]
-): HTMLElementTagNameMap[K] {
-  const el = document.createElement(tag);
-  for (const [k, v] of Object.entries(props)) {
-    if (k === "class") el.className = String(v);
-    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v as EventListener);
-    else if (v === true) el.setAttribute(k, "");
-    else if (v !== false && v != null) el.setAttribute(k, String(v));
-  }
-  for (const kid of kids) if (kid) el.append(kid);
-  return el;
-}
-const kbd = (s: string) => h("kbd", {}, s);
-
-let onKey: ((e: KeyboardEvent) => void) | null = null;
-function view(...nodes: Child[]) {
-  onKey = null;
-  app.replaceChildren(...nodes.filter((n): n is Node | string => !!n));
+  const back = pack
+    ? () => { const saved = loadPack(store, pack.id); if (saved) packView(saved); else home(); }
+    : home;
+  openDesigner({ draft, originalId: pack?.id, back, study: packView });
 }
 
 // ---------- home ----------
@@ -87,6 +73,7 @@ function home() {
       h("div", { class: "grow" }, h("div", { class: "name" }, p.title),
         h("div", { class: "muted" }, `${p.cards.length} cards · ${m.mastered} mastered`)),
       h("button", { onclick: () => packView(p) }, "Open"),
+      h("button", { class: "link", onclick: () => design(p) }, "Edit"),
       h("button", { class: "link danger", onclick: () => { if (confirm(`Remove "${p.title}" and its progress from this browser?`)) { forgetPack(store, p.id); home(); } } }, "Remove"));
   }));
 
@@ -98,7 +85,9 @@ function home() {
       h("div", {}, loadErrors[0]!), h("ul", {}, ...loadErrors.slice(1).map((e) => h("li", {}, e)))),
     list,
     h("p", { class: "muted" }, "No pack handy? ",
-      h("button", { class: "link", onclick: () => openPack(parsePackJson(sampleText), "sample") }, "Try the sample pack")),
+      h("button", { class: "link", onclick: () => openPack(parsePackJson(sampleText), "sample") }, "Try the sample pack"),
+      " or ",
+      h("button", { class: "link", onclick: () => design() }, hasDraft() ? "continue your draft" : "create your own")),
   );
 }
 
@@ -125,7 +114,9 @@ function packView(pack: Pack) {
 
   view(
     h("header", { class: "stack" },
-      h("button", { class: "link", onclick: home }, "← All packs"),
+      h("div", { class: "spread" },
+        h("button", { class: "link", onclick: home }, "← All packs"),
+        h("button", { class: "link", onclick: () => design(pack) }, "Edit pack")),
       h("h1", {}, pack.title),
       pack.description && h("p", { class: "muted" }, pack.description),
       h("p", { class: "muted" }, `${pack.cards.length} cards · ${m.studied} studied · ${m.mastered} mastered · ${progress.sessions} sessions`)),
@@ -174,7 +165,7 @@ function flipView(top: Node, bar: Node, card: Card, next: (ok: boolean) => void)
   actions.append(h("button", { class: "primary", onclick: reveal }, "Show answer ", kbd("space")));
   face.addEventListener("click", reveal);
   view(top, bar, face, actions);
-  onKey = (e) => {
+  keys.onKey = (e) => {
     if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (!shown) reveal(); }
     else if (shown && (e.key === "1" || e.key === "ArrowLeft")) next(false);
     else if (shown && (e.key === "2" || e.key === "ArrowRight")) next(true);
@@ -197,7 +188,7 @@ function choiceView(top: Node, bar: Node, card: Card, options: string[], next: (
     nextBtn.focus();
   }
   view(top, bar, h("div", { class: "card" }, h("div", { class: "side" }, "Question"), card.q), h("div", { class: "options" }, ...buttons), nextBtn);
-  onKey = (e) => {
+  keys.onKey = (e) => {
     const n = Number(e.key);
     if (picked === null && n >= 1 && n <= options.length) pick(n - 1);
     else if (picked !== null && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); next(options[picked] === card.a); }
@@ -230,7 +221,7 @@ function typedView(top: Node, bar: Node, card: Card, front: () => HTMLElement, n
 
   view(top, bar, front(), input, submit, feedback);
   input.focus();
-  onKey = (e) => {
+  keys.onKey = (e) => {
     if (e.key !== "Enter") return;
     e.preventDefault();
     if (!verdict) check();
@@ -257,10 +248,5 @@ function finish(pack: Pack, session: Session) {
       h("button", { onclick: () => packView(pack) }, "Back to pack")),
   );
 }
-
-document.addEventListener("keydown", (e) => {
-  if (e.metaKey || e.ctrlKey || e.altKey) return;
-  onKey?.(e);
-});
 
 home();

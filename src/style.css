@@ -82,3 +82,18 @@ input[type="text"] {
 .missed { margin: 8px 0 0; padding-left: 20px; text-align: left; font-size: 1rem; }
 [hidden] { display: none !important; }
 @media (max-width: 480px) { body { padding: 12px; } .card { font-size: 1.2rem; padding: 18px; } }
+
+/* pack designer */
+textarea {
+  font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--card); color: var(--fg); width: 100%; resize: vertical;
+}
+textarea:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field .label, summary .label { font-weight: 600; font-size: .9rem; }
+.card.small { min-height: 0; flex: none; font-size: 1.1rem; padding: 16px; }
+.card-editor > summary { cursor: pointer; list-style-position: inside; }
+.card-editor[open] > summary { margin-bottom: 12px; }
+.q-preview { color: var(--muted); overflow-wrap: anywhere; }
+.btn-link { color: var(--acc); cursor: pointer; padding: 4px 8px; }
+.errors-box ul, .panel ul { margin: 6px 0 0; padding-left: 20px; }

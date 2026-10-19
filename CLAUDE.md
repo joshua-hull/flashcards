@@ -6,11 +6,11 @@ This file gives AI coding assistants and contributors the background needed to w
 
 ## Status
 
-M0 (prototype) and M1 (core app) are done: pack upload (JSON/CSV) with validation, flip / multiple-choice / typed modes, session summary with missed-card retry, and browser-stored progress with per-pack reset. Next is M2 (pack designer) and M3 (spaced repetition); see [PLAN.md](PLAN.md).
+M0 (prototype), M1 (core app) and M2 (pack designer) are done: pack upload (JSON/CSV) with validation, flip / multiple-choice / typed modes, session summary with missed-card retry, browser-stored progress with per-pack reset, and an in-page pack designer (live validation, preview, download, import). Next is M3 (spaced repetition); see [PLAN.md](PLAN.md).
 
 Commands: `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run build`.
 
-Layout: `src/lib/` holds the pure, unit-tested logic (`pack`, `csv`, `match`, `choices`, `shuffle`, `session`, `storage`); `src/main.ts` is the thin DOM layer on top of it; `packs/` and `schema/` define the pack format.
+Layout: `src/lib/` holds the pure, unit-tested logic (`pack`, `csv`, `match`, `choices`, `shuffle`, `session`, `storage`, `designer`); `src/main.ts` (quiz flow), `src/designer.ts` (pack designer) and `src/dom.ts` (shared element/view helpers) are the thin DOM layer on top of it; `packs/` and `schema/` define the pack format.
 
 ## Design decisions
 
