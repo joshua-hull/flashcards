@@ -48,6 +48,13 @@ describe("draft <-> pack", () => {
     expect((out.cards as Record<string, unknown>[])[0]!.note).toBe("n");
   });
 
+  it("writes known keys first and unknown fields after them", () => {
+    const pack = { version: 1, id: "x", title: "T", author: "me", cards: [{ id: "a", q: "q", a: "a", note: "n", tags: ["t"] }] } as unknown as Pack;
+    const out = draftToPack(draftFromPack(pack));
+    expect(Object.keys(out)).toEqual(["version", "id", "title", "author", "cards"]);
+    expect(Object.keys(out.cards[0]!)).toEqual(["id", "q", "a", "tags", "note"]);
+  });
+
   it("parses list fields from text and omits empty optionals", () => {
     const d = blankDraft();
     d.id = "p"; d.title = "P";

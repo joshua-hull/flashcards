@@ -83,20 +83,20 @@ export function draftToPack(d: Draft): Pack {
   const cards = d.cards.map((c) => {
     const choices = lines(c.choices), accept = lines(c.accept), tags = commas(c.tags);
     return {
-      ...c.extra,
       id: c.id.trim(), q: c.q.trim(), a: c.a.trim(),
       ...(choices.length ? { choices } : {}),
       ...(accept.length ? { accept } : {}),
       ...(tags.length ? { tags } : {}),
+      ...c.extra, // known keys first so exported files read naturally; extras never collide with them
     };
   });
   const description = d.description.trim();
   return {
-    ...d.extra,
     version: 1,
     id: d.id.trim(),
     title: d.title.trim(),
     ...(description ? { description } : {}),
+    ...d.extra,
     cards,
   } as Pack;
 }

@@ -1,6 +1,6 @@
 # Flashcards & Quiz App — Plan
 
-Status: M2 in progress (M0, M1 done; deployed to GitHub Pages) · Created 2026-10-17
+Status: M0–M2 done; deployed to GitHub Pages · Created 2026-10-17
 
 ## Goal
 
@@ -55,7 +55,7 @@ Rules: stable card `id`s (progress depends on them); unknown fields preserved/ig
 - Progress in browser storage; reset per pack.
 - Mobile-friendly layout, keyboard shortcuts.
 
-**M2 — Pack designer. 🚧 In progress.** Author cards and settings in-page, live preview, download as `.json`. Import existing pack to edit.
+**M2 — Pack designer. ✅ Done** (#11). Author cards and settings in-page, live preview, download as `.json`. Import existing pack to edit.
 
 **M3 — Scheduling.** Per-card state in storage; start with SM-2 (simple), evaluate FSRS. Due-today view. Export/import progress file as a backup.
 
@@ -77,4 +77,4 @@ Unit tests for pack validation, fuzzy match, shuffling, and scheduler (pure func
 
 ## Next step
 
-M2 (#11): in-page pack designer — author/edit cards, live validation and preview, download as `.json`, import an existing pack to edit. Then M3 (#12) spaced repetition, and offline support (rest of #13).
+M3 (#12): spaced repetition — per-card scheduling state, due-today view, progress export/import. Also pending: offline support (rest of #13), and the typed-answer whitespace/minus-sign matching fix.
