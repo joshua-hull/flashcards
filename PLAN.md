@@ -77,4 +77,4 @@ Unit tests for pack validation, fuzzy match, shuffling, and scheduler (pure func
 
 ## Next step
 
-Build the M0 throwaway quiz page (#6).
+M0 prototype is in `prototype/index.html` (single file, no build; serve the repo root with `python3 -m http.server` and open `/prototype/`). Play with it, note what feels wrong, then decide what carries into M1.
