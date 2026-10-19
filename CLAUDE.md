@@ -42,3 +42,5 @@ These are settled. Raise a change in an issue or PR rather than working around t
 ## Contributing
 
 Work on a branch and open a pull request; don't push directly to `main`.
+
+Clean up after merging: delete the PR's branch on the remote and locally (`gh pr merge <n> --squash --delete-branch`, or `git push origin --delete <branch>` plus `git branch -D <branch>`), and close any issues the PR resolved. GitHub only auto-closes the first issue in a "closes #1, #2" list, so write `closes #1, closes #2`.

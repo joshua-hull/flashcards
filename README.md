@@ -27,6 +27,10 @@ A pack is a single JSON file with a `version` field, so shared packs keep workin
 - Schema: [`schema/pack.schema.json`](schema/pack.schema.json)
 - Example: [`packs/sample.json`](packs/sample.json)
 
+## License
+
+[MIT](LICENSE)
+
 ## Planned
 
 An in-browser pack designer; spaced repetition; deployment to GitHub Pages with offline support.
