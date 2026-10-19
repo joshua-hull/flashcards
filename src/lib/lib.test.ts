@@ -92,6 +92,24 @@ describe("match", () => {
     expect(normalize("  Café,  AU  lait! ")).toBe("cafe au lait");
   });
 
+  it("ignores spacing around math symbols and unifies minus/dash variants", () => {
+    expect(normalize("4x + 8")).toBe(normalize("4x+8"));
+    expect(normalize("12 + 5")).toBe("12+5");
+    expect(normalize("−3")).toBe("-3");
+    expect(normalize("25 %")).toBe("25%");
+    expect(normalize("6 ÷ 1/2")).toBe(normalize("6÷1/2"));
+    expect(normalize("3 – 4")).toBe("3-4");
+    expect(normalize("well known")).not.toBe(normalize("wellknown")); // word spacing still matters
+  });
+
+  it("grades typed math answers regardless of spacing or minus glyph", () => {
+    expect(checkTyped("4x+8", card("1", "4x + 8"))).toBe("exact");
+    expect(checkTyped("4x + 8", card("1", "4x+8"))).toBe("exact");
+    expect(checkTyped("-3", card("1", "−3"))).toBe("exact");
+    expect(checkTyped("12+5", card("1", "12 + 5"))).toBe("exact");
+    expect(checkTyped("4x+9", card("1", "4x + 8"))).toBe("wrong");
+  });
+
   it("computes edit distance", () => {
     expect(levenshtein("kitten", "sitting")).toBe(3);
     expect(levenshtein("", "abc")).toBe(3);
