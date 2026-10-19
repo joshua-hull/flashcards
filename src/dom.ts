@@ -35,6 +35,16 @@ export function h<K extends keyof HTMLElementTagNameMap>(
 
 export const kbd = (s: string) => h("kbd", {}, s);
 
+/** Hand the user a text file via a temporary download link. */
+export function downloadText(filename: string, text: string, type = "application/json"): void {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = h("a", { href: url, download: filename });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 /** Replace an element's children, skipping falsy entries like `h` does. */
 export const fill = (el: HTMLElement, ...kids: Child[]): void =>
   el.replaceChildren(...kids.filter((k): k is Node | string => !!k));

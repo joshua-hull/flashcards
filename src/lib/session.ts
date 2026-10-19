@@ -1,4 +1,5 @@
 import type { Card, Rng } from "./types";
+import type { Quality } from "./scheduler";
 import { shuffle } from "./shuffle";
 
 export type Mode = "flip" | "choice" | "typed";
@@ -6,6 +7,7 @@ export type Mode = "flip" | "choice" | "typed";
 export interface Answer {
   cardId: string;
   correct: boolean;
+  quality?: Quality; // SM-2 quality for the scheduler; storage derives one from `correct` when absent
 }
 
 export interface Session {
@@ -30,10 +32,10 @@ export const isDone = (s: Session): boolean => s.index >= s.deck.length;
 export const currentCard = (s: Session): Card | undefined => s.deck[s.index];
 
 /** Record the result for the current card and advance. Returns the same session once finished. */
-export function record(s: Session, correct: boolean): Session {
+export function record(s: Session, correct: boolean, quality?: Quality): Session {
   const card = currentCard(s);
   if (!card) return s;
-  return { ...s, index: s.index + 1, answers: [...s.answers, { cardId: card.id, correct }] };
+  return { ...s, index: s.index + 1, answers: [...s.answers, { cardId: card.id, correct, ...(quality !== undefined ? { quality } : {}) }] };
 }
 
 export function summarize(s: Session): Summary {
