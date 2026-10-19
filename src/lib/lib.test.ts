@@ -59,6 +59,7 @@ describe("csv", () => {
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.pack.id).toBe("my-pack");
+      expect(r.pack.title).toBe("My Pack");
       expect(r.pack.cards[0]).toEqual({ id: "x1", q: "2+2", a: "4", tags: ["math", "easy"] });
     }
   });

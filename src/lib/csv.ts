@@ -66,6 +66,6 @@ export function csvToPack(text: string, filename = "pack.csv"): ParseResult {
     return { id, q, a, ...(tags.length ? { tags } : {}) };
   });
 
-  const base = slugify(filename);
-  return validatePack({ version: 1, id: base, title: base, cards });
+  const title = filename.replace(/\.[a-z0-9]+$/i, "").trim() || "Untitled pack";
+  return validatePack({ version: 1, id: slugify(filename), title, cards });
 }

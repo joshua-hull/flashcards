@@ -1,6 +1,6 @@
 # Flashcards & Quiz App — Plan
 
-Status: planning · Created 2026-10-17
+Status: M1 done · Created 2026-10-17
 
 ## Goal
 
@@ -77,4 +77,4 @@ Unit tests for pack validation, fuzzy match, shuffling, and scheduler (pure func
 
 ## Next step
 
-M0 prototype is in `prototype/index.html` (single file, no build; serve the repo root with `python3 -m http.server` and open `/prototype/`). Play with it, note what feels wrong, then decide what carries into M1.
+M2: the pack designer (#11). M1 shipped in-browser: JSON/CSV upload with validation, three modes, summary and retry, and localStorage progress.

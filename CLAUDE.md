@@ -6,7 +6,11 @@ This file gives AI coding assistants and contributors the background needed to w
 
 ## Status
 
-Early planning. The plan, pack schema, sample pack and README exist; there is no app code yet. The next milestone (M0) is a throwaway quiz page that loads a pack, shuffles, flips/reveals and self-grades, to judge whether the study loop feels right. It is a prototype, not code to keep.
+M0 (prototype) and M1 (core app) are done: pack upload (JSON/CSV) with validation, flip / multiple-choice / typed modes, session summary with missed-card retry, and browser-stored progress with per-pack reset. Next is M2 (pack designer) and M3 (spaced repetition); see [PLAN.md](PLAN.md).
+
+Commands: `npm run dev`, `npm test` (Vitest), `npm run typecheck`, `npm run build`.
+
+Layout: `src/lib/` holds the pure, unit-tested logic (`pack`, `csv`, `match`, `choices`, `shuffle`, `session`, `storage`); `src/main.ts` is the thin DOM layer on top of it; `packs/` and `schema/` define the pack format.
 
 ## Design decisions
 
