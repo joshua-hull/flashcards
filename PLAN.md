@@ -1,6 +1,6 @@
 # Flashcards & Quiz App — Plan
 
-Status: M0–M2 done; deployed to GitHub Pages · Created 2026-10-17
+Status: M0–M3 done; deployed to GitHub Pages · Created 2026-10-17
 
 ## Goal
 
@@ -57,7 +57,12 @@ Rules: stable card `id`s (progress depends on them); unknown fields preserved/ig
 
 **M2 — Pack designer. ✅ Done** (#11). Author cards and settings in-page, live preview, download as `.json`. Import existing pack to edit.
 
-**M3 — Scheduling.** Per-card state in storage; start with SM-2 (simple), evaluate FSRS. Due-today view. Export/import progress file as a backup.
+**M3 — Scheduling. ✅ Done** (#12, #19). Per-card SM-2 state in storage, due-today study source, and a backup file for packs + progress.
+- SM-2 with pass/fail results mapped to quality: flip ✓ = 4, multiple-choice ✓ = 3, typed exact = 5, typed close = 3, any miss = 1. A miss resets the card to tomorrow and lowers its ease.
+- Studying ahead ("All cards") counts the answer but only moves the schedule if the card was due or the answer was wrong, so repeating a round can't inflate intervals.
+- Due-today sessions: everything due (most overdue first) plus up to 20 unseen cards. Progress recorded before M3 counts as due.
+- **FSRS evaluated, deferred:** it needs four-way ratings and fitted parameters to beat SM-2, and every mode here yields a binary result. Revisit if a richer grading UI is added.
+- Backup: one JSON file of all saved packs with progress. Import adds new packs, keeps local pack definitions, and merges progress per card by most recent answer.
 
 **M4 — Sharing & polish.** Optional `?pack=` URL loading, shareable sample packs in-repo, PWA/offline. GitHub Pages deploy via Actions is done (#18): live at https://joshua-hull.is-a.dev/flashcards/.
 
@@ -72,9 +77,9 @@ Unit tests for pack validation, fuzzy match, shuffling, and scheduler (pure func
 ## Open questions
 
 - ~~Fuzzy-match strictness~~ Settled in M1: normalized compare plus edit distance scaled by answer length (≤4 chars exact, ≤9 one edit, else two); close matches count as correct and show the real answer.
-- Should progress be portable between browsers (export file) before M3?
+- ~~Should progress be portable between browsers?~~ Yes — backup export/import shipped in M3.
 - Name for the app.
 
 ## Next step
 
-M3 (#12): spaced repetition — per-card scheduling state, due-today view, progress export/import. Also pending: offline support (rest of #13), and the typed-answer whitespace/minus-sign matching fix.
+M4: offline support (rest of #13) and optional `?pack=` URL loading (#4). Also worth considering: a richer grading UI (hard/easy) if FSRS is revisited, and a settings screen for new cards per day (currently fixed at 20).

@@ -65,7 +65,7 @@ async function importBackup(file: File | undefined) {
     const r = mergeBackup(store, parsed.backup);
     backupMessage = { ok: true, lines: [
       `Imported ${file.name}: ${r.packsAdded} new pack${r.packsAdded === 1 ? "" : "s"}${r.packsKept ? ` (${r.packsKept} already here, kept as they are)` : ""}.`,
-      `Progress: ${r.cardsImported} card${r.cardsImported === 1 ? "" : "s"} updated${r.cardsKept ? `, ${r.cardsKept} kept because your version was newer` : ""}.`,
+      `Progress: ${r.cardsImported} card${r.cardsImported === 1 ? "" : "s"} updated${r.cardsKept ? `, ${r.cardsKept} kept (yours was as recent or newer)` : ""}.`,
     ] };
   }
   home();
